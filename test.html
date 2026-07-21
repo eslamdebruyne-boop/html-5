@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>قائمة أسعار معرض أدوات صحية</title>
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: #111a2e;
+            --panel2: #0f1730;
+            --text: #e7eefc;
+            --muted: #a9b7e6;
+            --accent: #4f7cff;
+            --accent2: #22c55e;
+            --border: rgba(255, 255, 255, .10);
+            --shadow: 0 12px 30px rgba(0, 0, 0, .35);
+            --radius: 16px;
+            --sidebar-width: 330px;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            font-family: Tahoma, Arial, sans-serif;
+            background: radial-gradient(1200px 600px at 20% -10%, rgba(79, 124, 255, .25), transparent 60%),
+                radial-gradient(900px 500px at 90% 0%, rgba(34, 197, 94, .16), transparent 55%),
+                var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background: rgba(11, 18, 32, .72);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .wrap {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 18px 16px;
+        }
+
+        /* ===== Hamburger & Mobile ===== */
+        .hamburger {
+            display: none;
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 24px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            line-height: 1;
+            transition: .15s;
+            flex: 0 0 auto;
+        }
+
+        .hamburger:hover {
+            border-color: rgba(79, 124, 255, .45);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 50;
+            opacity: 0;
+            transition: opacity .3s;
+            pointer-events: none;
+        }
+
+        .sidebar-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .title {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .title h1 {
+            font-size: clamp(14px, 4.5vw, 18px);
+            margin: 0;
+            letter-spacing: .2px;
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .title p {
+            margin: 0;
+            color: var(--muted);
+            font-size: clamp(11px, 3.2vw, 13px);
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            gap: 16px;
+            padding: 16px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, .02));
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .sidebar .head {
+            padding: 14px 14px 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .sidebar .head .label {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .sidebar .head strong {
+            font-size: clamp(13px, 3.5vw, 14px)
+        }
+
+        .sidebar .head span {
+            font-size: clamp(11px, 3vw, 12px);
+            color: var(--muted)
+        }
+
+        .sidebar-close {
+            display: none;
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 20px;
+            border-radius: 10px;
+            padding: 4px 10px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .search {
+            padding: 0 14px 14px;
+        }
+
+        .search input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(0, 0, 0, .18);
+            color: var(--text);
+            outline: none;
+            font-size: clamp(13px, 3.5vw, 15px);
+            min-height: 44px;
+        }
+
+        .search input::placeholder {
+            color: rgba(231, 238, 252, .55)
+        }
+
+        nav {
+            padding: 6px 10px 14px
+        }
+
+        .category {
+            margin: 10px 6px;
+        }
+
+        .cat-btn {
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, .10);
+            background: rgba(255, 255, 255, .03);
+            color: var(--text);
+            border-radius: 14px;
+            padding: 12px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            transition: .15s;
+            text-align: right;
+            font-size: clamp(13px, 3.5vw, 14px);
+            min-height: 44px;
+        }
+
+        .cat-btn:hover {
+            border-color: rgba(79, 124, 255, .45)
+        }
+
+        .cat-btn .chev {
+            width: 26px;
+            height: 26px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            background: rgba(79, 124, 255, .12);
+            border: 1px solid rgba(79, 124, 255, .25);
+            flex: 0 0 auto;
+            transition: .2s;
+        }
+
+        .cat-btn[aria-expanded="true"] .chev {
+            transform: rotate(180deg)
+        }
+
+        .items {
+            margin-top: 8px;
+            padding-right: 8px;
+            display: none;
+            gap: 6px;
+            flex-direction: column;
+        }
+
+        .items.show {
+            display: flex
+        }
+
+        .item {
+            width: 100%;
+            text-align: right;
+            padding: 12px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            background: rgba(0, 0, 0, .10);
+            border: 1px solid rgba(255, 255, 255, .08);
+            color: var(--text);
+            transition: .15s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: clamp(13px, 3.5vw, 14px);
+            min-height: 44px;
+        }
+
+        .item:hover {
+            border-color: rgba(79, 124, 255, .45)
+        }
+
+        .item.active {
+            background: rgba(79, 124, 255, .14);
+            border-color: rgba(79, 124, 255, .55);
+            box-shadow: 0 0 0 2px rgba(79, 124, 255, .10) inset;
+        }
+
+        .item small {
+            color: var(--muted);
+            font-size: clamp(11px, 3vw, 12px);
+            flex: 0 0 auto;
+        }
+
+        /* Main */
+        .main {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, .02));
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .main .main-head {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(0, 0, 0, .14);
+            color: var(--muted);
+            font-size: clamp(10px, 2.8vw, 12px);
+            white-space: nowrap;
+        }
+
+        .badge i {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: inline-block;
+            box-shadow: 0 0 0 3px rgba(79, 124, 255, .18);
+        }
+
+        .main .main-head h2 {
+            margin: 0;
+            font-size: clamp(15px, 4.5vw, 18px);
+            word-break: break-word;
+        }
+
+        .main .main-head p {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: clamp(12px, 3.5vw, 13px);
+            line-height: 1.5;
+        }
+
+        .price-pill {
+            flex: 0 0 auto;
+            align-self: flex-start;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(34, 197, 94, .35);
+            background: rgba(34, 197, 94, .12);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 150px;
+        }
+
+        .price-pill span {
+            font-size: clamp(11px, 3vw, 12px);
+            color: rgba(231, 238, 252, .70)
+        }
+
+        .price-pill strong {
+            font-size: clamp(17px, 5vw, 20px);
+            letter-spacing: .2px
+        }
+
+        .grid {
+            padding: 16px;
+            display: grid;
+            grid-template-columns: 1.2fr .8fr;
+            gap: 16px;
+            align-items: start;
+        }
+
+        .img-card {
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: rgba(0, 0, 0, .14);
+            overflow: hidden;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .03);
+        }
+
+        .img-card img {
+            width: 100%;
+            height: 420px;
+            object-fit: cover;
+            display: block;
+            background: rgba(255, 255, 255, .03);
+        }
+
+        .details {
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: rgba(0, 0, 0, .12);
+            padding: 14px;
+        }
+
+        .details h3 {
+            margin: 0 0 10px;
+            font-size: clamp(14px, 4vw, 15px)
+        }
+
+        .details .list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .details li {
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            background: rgba(255, 255, 255, .02);
+        }
+
+        .details .k {
+            color: var(--muted);
+            font-size: clamp(11px, 3vw, 12px)
+        }
+
+        .details .v {
+            margin-top: 4px;
+            font-size: clamp(12px, 3.5vw, 13px);
+            line-height: 1.6
+        }
+
+        footer {
+            padding: 18px 16px 32px;
+            color: rgba(231, 238, 252, .55);
+            text-align: center;
+            font-size: clamp(11px, 3vw, 12px);
+        }
+
+        .empty {
+            padding: 26px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        /* ====== Responsive ====== */
+        @media (max-width: 1024px) {
+            .content {
+                padding: 12px;
+                gap: 12px;
+            }
+
+            .grid {
+                padding: 12px;
+                gap: 12px;
+            }
+
+            .main .main-head {
+                padding: 12px;
+            }
+
+            .wrap {
+                padding: 14px 12px;
+            }
+
+            .img-card img {
+                height: 360px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hamburger {
+                display: block;
+            }
+
+            .sidebar-close {
+                display: block;
+            }
+
+            .content {
+                grid-template-columns: 1fr;
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: 85%;
+                max-width: 380px;
+                z-index: 60;
+                border-radius: 20px 0 0 20px;
+                border: none;
+                transform: translateX(100%);
+                opacity: 0;
+                transition: transform .35s cubic-bezier(.4, 0, .2, 1), opacity .3s;
+                background: linear-gradient(180deg, #0d1525, #0a1220);
+                box-shadow: -8px 0 30px rgba(0, 0, 0, .5);
+                overflow-y: auto;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .price-pill {
+                min-width: unset;
+                width: 100%;
+            }
+
+            .main .main-head {
+                flex-direction: column;
+                padding: 12px;
+                gap: 10px;
+            }
+
+            .img-card img {
+                height: 280px;
+            }
+
+            .details {
+                padding: 12px;
+            }
+
+            .details li {
+                padding: 8px 10px;
+            }
+
+            .item {
+                padding: 10px 12px;
+                min-height: 44px;
+            }
+
+            .cat-btn {
+                padding: 10px 12px;
+                min-height: 44px;
+            }
+
+            .search input {
+                padding: 10px 12px;
+                min-height: 44px;
+            }
+
+            .topbar {
+                gap: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .wrap {
+                padding: 10px 8px;
+            }
+
+            .content {
+                padding: 8px;
+                gap: 8px;
+            }
+
+            .title h1 {
+                font-size: clamp(13px, 4vw, 15px);
+                white-space: normal;
+            }
+
+            .title p {
+                font-size: clamp(10px, 2.8vw, 12px);
+            }
+
+            .badge {
+                font-size: 10px;
+                padding: 6px 8px;
+                gap: 5px;
+            }
+
+            .badge i {
+                width: 7px;
+                height: 7px;
+            }
+
+            .img-card img {
+                height: 220px;
+            }
+
+            .main .main-head {
+                padding: 10px;
+            }
+
+            .grid {
+                padding: 8px;
+            }
+
+            .price-pill {
+                padding: 10px 12px;
+                min-width: unset;
+            }
+
+            .price-pill strong {
+                font-size: 16px;
+            }
+
+            .sidebar {
+                width: 90%;
+                max-width: 320px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .img-card img {
+                height: 180px;
+            }
+
+            .price-pill strong {
+                font-size: 15px;
+            }
+
+            .item {
+                padding: 6px 8px;
+                font-size: 11px;
+            }
+
+            .cat-btn {
+                padding: 6px 8px;
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Overlay for mobile sidebar -->
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+    <header>
+        <div class="wrap">
+            <div class="topbar">
+                <button id="hamburgerBtn" class="hamburger" aria-label="فتح القائمة">☰</button>
+                <div class="title">
+                    <h1>قائمة أسعار معرض زين للأدوات الصحية</h1>
+                    <p>اختار الصنف من القائمة—وبيظهر لك السعر والصور والتفاصيل.</p>
+                </div>
+                <div class="badge" title="واجهة تفاعلية">
+                    <i></i>
+                    <span>شطب واسس من معرض زين</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="content wrap">
+        <aside id="sidebar" class="sidebar">
+            <div class="head">
+                <div class="label">
+                    <strong>التصنيفات</strong>
+                    <span>Menu + Items</span>
+                </div>
+                <button id="sidebarCloseBtn" class="sidebar-close" aria-label="إغلاق القائمة">✕</button>
+            </div>
+
+            <div class="search">
+                <input id="searchInput" type="text" placeholder="ابحث عن بند..." />
+            </div>
+
+            <nav id="nav"></nav>
+        </aside>
+
+        <main class="main" aria-live="polite">
+            <div class="main-head">
+                <div>
+                    <h2 id="mainTitle">—</h2>
+                    <p id="mainSubtitle">اختار بند من القائمة.</p>
+                </div>
+                <div class="price-pill">
+                    <span>السعر</span>
+                    <strong id="mainPrice">—</strong>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="img-card">
+                    <img id="mainImage" alt="صورة المنتج" src="" />
+                </div>
+
+                <div class="details">
+                    <h3>Details</h3>
+                    <ul class="list" id="mainDetails">
+                        <!-- injected -->
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <footer>
+        يتم عرض البيانات بشكل تفاعلي داخل الصفحة.
+    </footer>
+
+    <script>
+        // بيانات المنتجات (عدّل الأسعار/التفاصيل بسهولة)
+        const products = [
+            {
+                category: 'أحواض اسمارت',
+                items: [
+                    {
+                        id: 'smart-sink-bath-1',
+                        title: 'حوض اسمارت بكره',
+                        price: '3350',
+                        image: 'https://d1hy6t2xeg0mdl.cloudfront.net/image/736969/1a035026ee/700-width',
+                        details: [
+                            { k: 'الوصف', v: 'حوض اسمارت بكرة اسود' },
+                            { k: 'المقاس', v: '45*75' },
+                            { k: 'اللون/الخامة', v: 'اسود الخامه استانلس' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'smart-sink-2',
+                        title: 'حوض اسمارت 5 زرار اسود',
+                        price: '4350',
+                        image: 'https://down-my.img.susercontent.com/file/cn-11134207-7r98o-lzolxy267u5v8d',
+                        details: [
+                            { k: 'الوصف', v: 'حوض اسمارت 5 زرار اسود' },
+                            { k: 'المقاس', v: '45*75' },
+                            { k: 'اللون/الخامة', v: 'اسود خامه استانلس' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'smart-sink-3',
+                        title: 'حوض اسمارت 5 زرار نيكل',
+                        price: '4700',
+                        image: 'https://down-my.img.susercontent.com/file/cn-11134207-7r98o-lzolxy267u5v8d',
+                        details: [
+                            { k: 'الوصف', v: 'حوض اسمارت 5 زرار نيكل' },
+                            { k: 'المقاس', v: '45*75' },
+                            { k: 'اللون/الخامة', v: 'فضي خامه استانلس' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'smart-sink-4',
+                        title: 'حوض اسمارت 7 زرار اسود',
+                        price: '4500',
+                        image: 'https://image.made-in-china.com/2f0j00EFqbdmNccSoh/Single-Bowl-Smart-Kitchen-Sink-Stainless-Steel-Custom-Commercial-Kitchen-Sink-Restaurant-Dishwashing-Sinks.jpg',
+                        details: [
+                            { k: 'الوصف', v: 'حوض اسمارت 7 زرار اسود' },
+                            { k: 'المقاس', v: '45*75' },
+                            { k: 'اللون/الخامة', v: 'اسود الخامه ستانلس' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'smart-sink-5',
+                        title: 'حوض اسمارت 7 زرار نيكل',
+                        price: '4800',
+                        image: 'https://image.made-in-china.com/2f0j00EFqbdmNccSoh/Single-Bowl-Smart-Kitchen-Sink-Stainless-Steel-Custom-Commercial-Kitchen-Sink-Restaurant-Dishwashing-Sinks.jpg',
+                        details: [
+                            { k: 'الوصف', v: 'حوض اسمارت 7 زرار نيكل' },
+                            { k: 'المقاس', v: '45*75' },
+                            { k: 'اللون/الخامة', v: 'فضي خامه استانلس' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    }
+                ]
+            },
+            {
+                category: 'مسطرة 1*1',
+                items: [
+                    {
+                        id: 'ruler-1x1-1',
+                        title: 'مسطرة 1*1 نيكل',
+                        price: '700',
+                        image: 'https://dkstatics-public.digikala.com/digikala-products/730791fa37d64ca773b5519778362ec6adae2735_1704041082.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/quality,q_90',
+                        details: [
+                            { k: 'التفاصيل', v: 'مسطرة 1*1 نيكل' },
+                            { k: 'المقاس', v: '-' },
+                            { k: 'النوع', v: 'لوكس' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'ruler-1x1-black-1',
+                        title: 'مسطرة 1*1 اسود',
+                        price: '600',
+                        image: 'https://cdn.onbuy.com/product/65b2fe4001ba9/500-500/noir-black-shower-slide-rail-kit-adjustable-riser-rail-shower-head-hose-pipe-bracket-matt-black.jpg',
+                        details: [
+                            { k: 'التفاصيل', v: 'مسطرة 1*1 اسود' },
+                            { k: 'المقاس', v: '-' },
+                            { k: 'النوع', v: 'لوكس' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    }
+                ]
+            },
+            {
+                category: 'مسطرة 2*1',
+                items: [
+                    {
+                        id: 'ruler-2x1-1',
+                        title: 'مسطرة 2*1 اسود',
+                        price: '1100',
+                        image: 'https://panorama-egypt.com/image/cache/catalog/Panorama/Colors/88db0ed5-6e4d-4cba-b92d-523437293e4a-1000x1000.jpg',
+                        details: [
+                            { k: 'التفاصيل', v: 'مسطرة 2*1 اسود' },
+                            { k: 'المقاس', v: '-' },
+                            { k: 'النوع', v: 'لوكس مستورد' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'ruler-2x1-2',
+                        title: 'مسطرة 2*1 دهبي',
+                        price: '1850',
+                        image: 'https://ccapi.mitre10.co.nz/medias/sys_master/productimages/hd8/h5d/9022966956062/Mitre10-1500x1500_2016065xlg/Mitre10-1500x1500-2016065xlg.jpg',
+                        details: [
+                            { k: 'التفاصيل', v: 'مسطرة 2*1 دهبي' },
+                            { k: 'المقاس', v: '-' },
+                            { k: 'النوع', v: 'لوكس مستورد' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'ruler-2x1-3',
+                        title: 'مسطرة 2*1 نيكل',
+                        price: '1200',
+                        image: 'https://www.ntl-faucet.com/wp-content/uploads/2024/08/NTL-1026-1.jpg',
+                        details: [
+                            { k: 'التفاصيل', v: 'مسطرة 2*1 نيكل' },
+                            { k: 'المقاس', v: '-' },
+                            { k: 'النوع', v: 'لوكس مستورد' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    }
+                ]
+            },
+            {
+                category: 'مسطره بيانو',
+                items: [
+                    {
+                        id: 'piano-ruler-grey-led-1',
+                        title: 'مسطره بيانو رمادي + شاشه ليد',
+                        price: '2400',
+                        image: 'https://www.sebakashop.com/wp-content/uploads/2026/04/Grey-Shower-Panel-4-1-with-water-mixer.jpg',
+                        details: [
+                            { k: 'التفاصيل', v: 'مسطره بيانو LED رمادي' },
+                            { k: 'المقاس', v: '-' },
+                            { k: 'الخامة', v: 'لوكس مستورد' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'piano-ruler-no-led-1',
+                        title: 'مسطره بيانو نيكل + شاشه ليد',
+                        price: '2400',
+                        image: 'https://down-br.img.susercontent.com/file/sg-11134201-7renb-m2h57omecgcga6',
+                        details: [
+                            { k: 'التفاصيل', v: 'مسطره بيانو بدون شاشه' },
+                            { k: 'المقاس', v: '-' },
+                            { k: 'الخامة', v: 'لوكس مستورد' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'piano-ruler-nickel-1',
+                        title: 'مسطرة بيانو اسود بدون شاشه',
+                        price: '1600',
+                        image: 'https://cdn1.ozone.ru/s3/multimedia-1-8/c600/7089297956.jpg',
+                        details: [
+                            { k: 'التفاصيل', v: 'مسطرة LED نيكل' },
+                            { k: 'المقاس', v: '-' },
+                            { k: 'الخامة', v: 'لوكس مستورد' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    }
+                ]
+            },
+            {
+                category: ' شاور بانل',
+                items: [
+                    {
+                        id: 'shower-panel-nickel-1',
+                        title: 'شاور بانل نيكل',
+                        price: '3200',
+                        image: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgs1QfcFWUjRDc9BlL93Yg9ukvOTpkzZmaH-f84bHKCAnBpnDWsGvaEoumrAIkXHlFDs7TaKdFwyccevE9jvPyUPNcYkExilVn2ezNdN6hWBMCIZNqiyd4yt110efN0C72-Z1NnjPg8F3YiSUY8-ERbrK_HrHOqsNYylBcdIRqBJ5YTIboQRW5GNJuMdQ/s1500/Shower%20Panel%20Systems.jpg',
+                        details: [
+                            { k: 'التفاصيل', v: 'شاور بانل نيكل' },
+                            { k: 'المقاس', v: '-' },
+                            { k: 'الخامة', v: '-' },
+                            { k: 'المخزون', v: '0' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'shower-panel-gold-1',
+                        title: 'شاور بانل دهبي',
+                        price: '2400',
+                        image: 'https://ae01.alicdn.com/kf/S6277aa85a2af4f30bf04965c85f7d7bcH.jpg',
+                        details: [
+                            { k: 'التفاصيل', v: 'شاور بانل دهبي' },
+                            { k: 'المقاس', v: '-' },
+                            { k: 'الخامة', v: '' },
+                            { k: 'المخزون', v: '0' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    }
+                ]
+            },
+            {
+                category: 'اطقم اكسسوار',
+                items: [
+                    {
+                        id: 'accessories-set-nickel-1',
+                        title: 'طقم اكسسوار نيكل',
+                        price: '1400',
+                        image: 'https://www.ydvalves.com/wp-content/uploads/2020/03/5-1.jpg',
+                        details: [
+                            { k: 'التفاصيل', v: 'طقم اكسسوار نيكل' },
+                            { k: 'المقاس', v: '-' },
+                            { k: 'الخامة', v: '-' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'accessories-set-black-1',
+                        title: 'طقم اكسسوار اسود',
+                        price: '1400',
+                        image: 'https://image.made-in-china.com/2f0j00uekcobaGHgqK/Wholesale-Bathroom-Products-Hotel-Hook-Bathroom-Accessories-Set.jpg',
+                        details: [
+                            { k: 'التفاصيل', v: 'طقم اكسسوار اسود' },
+                            { k: 'المقاس', v: '-' },
+                            { k: 'الخامة', v: '-' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'accessories-set-gold-1',
+                        title: 'طقم اكسسوار دهبي',
+                        price: '1550',
+                        image: 'https://emudesignbuild.com.au/wp-content/uploads/2023/04/IMG-20240314-WA0008.jpg',
+                        details: [
+                            { k: 'التفاصيل', v: 'طقم اكسسوار دهبي' },
+                            { k: 'المقاس', v: '-' },
+                            { k: 'الخامة', v: '-' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    }
+                ]
+            },
+            {
+                category: 'وحده',
+                items: [
+                    {
+                        id: 'single-sink-unit-1',
+                        title: ' وحده',
+                        price: '2100',
+                        image: 'https://images.cwatson.co.uk/ABS/1459437083-77795300.jpg',
+                        details: [
+                            { k: 'التفاصيل', v: ' وحده' },
+                            { k: 'المقاس', v: '-' },
+                            { k: 'الخامة', v: 'كلادينج' },
+                            { k: 'المعروض', v: '2' }
+                        ]
+                    }
+                ]
+            },
+            {
+                category: 'حوض وحده',
+                items: [
+                    {
+                        id: 'single-sink-unit-2',
+                        title: 'حوض وحده',
+                        price: '2200',
+                        image: 'https://images.cwatson.co.uk/ABS/1459437083-77795300.jpg',
+                        details: [
+                            { k: 'التفاصيل', v: 'حوض وحده' },
+                            { k: 'المقاس', v: '-' },
+                            { k: 'الخامة', v: '-' },
+                            { k: 'المعروض', v: '2' }
+                        ]
+                    }
+                ]
+            },
+            {
+                category: 'اطقم صيني',
+                items: [
+                    {
+                        id: 'chinese-set-juliet-1',
+                        title: 'طقم جوليت',
+                        price: '4700',
+                        image: 'https://www.showerstoyou.co.uk/uploads/category/Kartell_Revive_Ceramics.jpg',
+                        details: [
+                            { k: 'التفاصيل', v: 'طقم جوليت' },
+                            { k: 'حوض و ركبه ', v: '1450' },
+                            { k: 'قاعده', v: '3250' },
+                            { k: 'المعروض', v: '1' },
+                            { k: 'المخزن', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'chinese-set-mikafit-1',
+                        title: 'طقم ميكافيت',
+                        price: '4100',
+                        image: 'https://tse4.mm.bing.net/th/id/OIP.oXHqqMQDWof9t8or9n0Z2wHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3',
+                        details: [
+                            { k: 'التفاصيل', v: 'طقم ميكافيت' },
+                            { k: 'حوض وركبه', v: '1850' },
+                            { k: 'القاعده', v: '2900' },
+                            { k: 'المعروض', v: '2' }
+                        ]
+                    },
+                    {
+                        id: 'chinese-set-miseko-1',
+                        title: 'قواعد ليسكو',
+                        price: '6700',
+                        image: 'https://www.synarti.com/source/uploads/2023/07/CL00004_20230724_506a3.jpg',
+                        details: [
+                            { k: 'التفاصيل', v: 'قواعد ليسكو' },
+                            { k: 'المقاس', v: '-' },
+                            { k: 'الخامة', v: '-' },
+                            { k: 'المعروض', v: '1' }
+                        ]
+                    }
+                ]
+            },
+            {
+                category: 'اطقم خلاط',
+                items: [
+                    {
+                        id: 'mixer-set-pentagon-black-1',
+                        title: 'طقم خلاط pentagon اسود',
+                        price: '3900',
+                        image: '-',
+                        details: [
+                            { k: 'التفاصيل', v: 'طقم خلاط pentagon اسود' },
+                            { k: 'الدش', v: '1500' },
+                            { k: 'الحوض', v: '1200' },
+                            { k: 'المطبخ', v: '1200' },
+                            { k: 'النوع', v: 'الماني' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'mixer-set-dusbirg-black-1',
+                        title: 'طقم خلاط dusbirg اسود',
+                        price: '3900',
+                        image: '-',
+                        details: [
+                            { k: 'التفاصيل', v: 'طقم خلاط dusbirg اسود' },
+                            { k: 'الدش', v: '1500' },
+                            { k: 'الحوض', v: '1200' },
+                            { k: 'المطبخ', v: '1200' },
+                            { k: 'النوع', v: 'الماني' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'mixer-set-dusbirg-gusel-gold-1',
+                        title: 'طقم خلاط gusel دهبي',
+                        price: '5700',
+                        image: '-',
+                        details: [
+                            { k: 'التفاصيل', v: 'طقم خلاط gusel دهبي' },
+                            { k: 'الدش', v: '2300' },
+                            { k: 'الحوض', v: '1700' },
+                            { k: 'المطبخ', v: '1700' },
+                            { k: 'النوع', v: 'الماني' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'mixer-set-dusbirg-nickel-3',
+                        title: 'طقم خلاط dusbirg نيكل',
+                        price: '4000',
+                        image: '-',
+                        details: [
+                            { k: 'التفاصيل', v: 'طقم خلاط dusbirg نيكل' },
+                            { k: 'الدش', v: '1600' },
+                            { k: 'الحوض', v: '1300' },
+                            { k: 'المطبخ', v: '1300' },
+                            { k: 'النوع', v: 'الماني' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'mixer-set-fcs-nickel-4',
+                        title: 'طقم خلاط FCSنيكل',
+                        price: '3600',
+                        image: '-',
+                        details: [
+                            { k: 'التفاصيل', v: 'طقم خلاط FCSنيكل' },
+                            { k: 'الدش', v: '1500' },
+                            { k: 'الحوض', v: '1100' },
+                            { k: 'المطبخ', v: '1100' },
+                            { k: 'النوع', v: 'تركي' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'mixer-set-maloda-nickel-5',
+                        title: 'طقم خلاط maloda نيكل',
+                        price: '1550',
+                        image: '-',
+                        details: [
+                            { k: 'التفاصيل', v: 'طقم خلاط maloda نيكل' },
+                            { k: 'الدش', v: '650' },
+                            { k: 'الحوض', v: '440' },
+                            { k: 'المطبخ', v: '450' },
+                            { k: 'النوع', v: 'ايطالي' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'mixer-set-reca-spanish-6',
+                        title: 'طقم خلاط roca نيكل',
+                        price: '1550',
+                        image: '-',
+                        details: [
+                            { k: 'التفاصيل', v: 'طقم خلاط roca' },
+                            { k: 'الدش', v: '650' },
+                            { k: 'الحوض', v: '440' },
+                            { k: 'المطبخ', v: '450' },
+                            { k: 'النوع', v: 'اسباني' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'mixer-sheif-black-1',
+                        title: 'خلاط شيف اسود',
+                        price: '1450',
+                        image: '-',
+                        details: [
+                            { k: 'التفاصيل', v: 'خلاط شيف اسود' },
+                            { k: 'النوع', v: 'عادي' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'mixer-shagara-black-1',
+                        title: 'خلاط شجرة اسود',
+                        price: '1350',
+                        image: '-',
+                        details: [
+                            { k: 'التفاصيل', v: 'خلاط شجرة اسود' },
+                            { k: 'النوع', v: 'عادي' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'mixer-decor-unit-black-1',
+                        title: 'خلاط ديكور وحده اسود',
+                        price: '1150',
+                        image: '-',
+                        details: [
+                            { k: 'التفاصيل', v: 'خلاط ديكور وحده اسود' },
+                            { k: 'النوع', v: 'ديكور' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'mixer-sheif-gold-1',
+                        title: 'خلاط شيف دهبي',
+                        price: '2000',
+                        image: '-',
+                        details: [
+                            { k: 'التفاصيل', v: 'خلاط شيف دهبي' },
+                            { k: 'النوع', v: 'دهبي' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'mixer-decor-nickel-1',
+                        title: 'خلاط ديكور نيكل',
+                        price: '1200',
+                        image: '-',
+                        details: [
+                            { k: 'التفاصيل', v: 'خلاط ديكور نيكل' },
+                            { k: 'النوع', v: 'ديكور' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    },
+                    {
+                        id: 'mixer-decor-black-2',
+                        title: 'خلاط ديكور اسود',
+                        price: '1200',
+                        image: '-',
+                        details: [
+                            { k: 'التفاصيل', v: 'خلاط ديكور اسود' },
+                            { k: 'النوع', v: 'ديكور' },
+                            { k: 'المخزون', v: '1' },
+                            { k: 'العرض', v: '1' }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        const nav = document.getElementById('nav');
+        const searchInput = document.getElementById('searchInput');
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        const mainTitle = document.getElementById('mainTitle');
+        const mainSubtitle = document.getElementById('mainSubtitle');
+        const mainPrice = document.getElementById('mainPrice');
+        const mainImage = document.getElementById('mainImage');
+        const mainDetails = document.getElementById('mainDetails');
+
+        let activeItemId = null;
+
+        function formatPrice(p) {
+            if (!p || p === '—') return '—';
+            return p;
+        }
+
+        function renderDetails(details) {
+            mainDetails.innerHTML = '';
+            details.forEach(row => {
+                const li = document.createElement('li');
+                const k = document.createElement('div');
+                k.className = 'k';
+                k.textContent = row.k;
+                const v = document.createElement('div');
+                v.className = 'v';
+                v.textContent = row.v;
+                li.appendChild(k);
+                li.appendChild(v);
+                mainDetails.appendChild(li);
+            });
+        }
+
+        function renderMain(item) {
+            mainTitle.textContent = item.title;
+            mainSubtitle.textContent = '—';
+            mainPrice.textContent = formatPrice(item.price);
+            mainImage.src = item.image;
+            renderDetails(item.details || []);
+        }
+
+        function setActive(id) {
+            activeItemId = id;
+            document.querySelectorAll('.item').forEach(el => {
+                el.classList.toggle('active', el.dataset.itemId === id);
+            });
+        }
+
+        function buildNav(filterText = '') {
+            const q = (filterText || '').trim().toLowerCase();
+            nav.innerHTML = '';
+
+            products.forEach((cat, catIndex) => {
+                const itemsFiltered = cat.items.filter(it => {
+                    if (!q) return true;
+                    const hay = (it.title + ' ' + (it.details?.map(d => d.v).join(' ') || '')).toLowerCase();
+                    return hay.includes(q);
+                });
+
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+
+                const btn = document.createElement('button');
+                btn.className = 'cat-btn';
+                btn.type = 'button';
+                btn.setAttribute('aria-expanded', catIndex === 0 && !q ? 'true' : 'false');
+                btn.innerHTML = `<span>${cat.category}</span><span class="chev">⌄</span>`;
+
+                const itemsDiv = document.createElement('div');
+                itemsDiv.className = 'items' + ((catIndex === 0 && !q) ? ' show' : '');
+
+                btn.addEventListener('click', () => {
+                    const expanded = btn.getAttribute('aria-expanded') === 'true';
+                    btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+                    itemsDiv.classList.toggle('show', !expanded);
+                });
+
+                if (itemsFiltered.length === 0) {
+                    if (q) return;
+                }
+
+                itemsFiltered.forEach(item => {
+                    const itemBtn = document.createElement('button');
+                    itemBtn.type = 'button';
+                    itemBtn.className = 'item';
+                    itemBtn.dataset.itemId = item.id;
+                    itemBtn.innerHTML = `
+            <span>${item.title}</span>
+            <small>${formatPrice(item.price)}</small>
+          `;
+                    itemBtn.addEventListener('click', () => {
+                        setActive(item.id);
+                        renderMain(item);
+                        // Close sidebar on mobile after selecting
+                        if (window.innerWidth <= 768) {
+                            sidebar.classList.remove('open');
+                            overlay.classList.remove('show');
+                        }
+                    });
+                    itemsDiv.appendChild(itemBtn);
+                });
+
+                categoryDiv.appendChild(btn);
+                categoryDiv.appendChild(itemsDiv);
+                nav.appendChild(categoryDiv);
+            });
+        }
+
+        function init() {
+            buildNav('');
+            const first = products?.[0]?.items?.[0];
+            if (first) {
+                setActive(first.id);
+                renderMain(first);
+            }
+        }
+
+        // ===== Mobile sidebar events =====
+        if (hamburgerBtn) {
+            hamburgerBtn.addEventListener('click', () => {
+                sidebar.classList.add('open');
+                overlay.classList.add('show');
+            });
+        }
+
+        if (sidebarCloseBtn) {
+            sidebarCloseBtn.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('show');
+            });
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('show');
+            });
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            buildNav(e.target.value);
+            const all = products.flatMap(c => c.items);
+            const exists = all.some(it => it.id === activeItemId);
+            if (!exists) {
+                const first = products?.[0]?.items?.[0];
+                if (first) {
+                    setActive(first.id);
+                    renderMain(first);
+                }
+            }
+        });
+
+        init();
+    </script>
+</body>
+
+</html>
