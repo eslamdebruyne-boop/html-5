@@ -10,6 +10,11 @@
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#0b1220" />
     <title>قائمة أسعار معرض أدوات صحية</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js">
+    </script>
     <style>
         :root {
             --bg: #0b1220;
@@ -1336,6 +1341,91 @@
     <footer>يتم عرض البيانات بشكل تفاعلي داخل الصفحة.</footer>
 
     <script>
+        // ---- Firebase Initialization ----
+        const firebaseConfig = {
+            apiKey: "AIzaSyA8hnsiKV4ubn2bOhNMiE6F27FnCCqerC8",
+            authDomain: "zain-stock-dab60.firebaseapp.com",
+            projectId: "zain-stock-dab60",
+            storageBucket: "zain-stock-dab60.firebasestorage.app",
+            messagingSenderId: "45915752923",
+            appId: "1:45915752923:web:eac716389349aa46e87ffe",
+            measurementId: "G-JTM77BNQKE"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        // ---- Cache for faster access ----
+        let cachedStock = {};
+        let cachedSales = [];
+        let isSyncing = false;
+
+        function getFirestoreStockRef() { return db.collection('data').doc('stock'); }
+        function getFirestoreSalesRef() { return db.collection('data').doc('sales'); }
+
+        async function loadStockFromFirestore() {
+            try {
+                const doc = await getFirestoreStockRef().get();
+                if (doc.exists) { cachedStock = doc.data() || {}; return cachedStock; }
+            } catch (e) { console.warn('Firestore read failed, using local fallback', e); }
+            try { const raw = localStorage.getItem('zain_stock_data'); if (raw) cachedStock = JSON.parse(raw); } catch (e) { }
+            return cachedStock;
+        }
+
+        async function saveStockToFirestore(map) {
+            cachedStock = map;
+            try { await getFirestoreStockRef().set(map); } catch (e) { console.warn('Firestore write failed, saving locally', e); }
+            try { localStorage.setItem('zain_stock_data', JSON.stringify(map)); } catch (e) { }
+        }
+
+        async function loadSalesFromFirestore() {
+            try {
+                const doc = await getFirestoreSalesRef().get();
+                if (doc.exists) { cachedSales = doc.data()?.list || []; return cachedSales; }
+            } catch (e) { console.warn('Firestore read failed, using local fallback', e); }
+            try { const raw = localStorage.getItem('zain_sales_history'); if (raw) cachedSales = JSON.parse(raw); } catch (e) { }
+            return cachedSales;
+        }
+
+        async function saveSalesToFirestore(sales) {
+            cachedSales = sales;
+            try { await getFirestoreSalesRef().set({ list: sales }); } catch (e) { console.warn('Firestore write failed, saving locally', e); }
+            try { localStorage.setItem('zain_sales_history', JSON.stringify(sales)); } catch (e) { }
+        }
+
+        // Setup real-time listener
+        let unsubStock = null, unsubSales = null;
+        function setupRealtimeSync() {
+            try {
+                unsubStock = getFirestoreStockRef().onSnapshot((doc) => {
+                    if (doc.exists) {
+                        cachedStock = doc.data() || {};
+                        localStorage.setItem('zain_stock_data', JSON.stringify(cachedStock));
+                        // Trigger UI re-render if needed
+                        if (typeof renderInvoiceHistory === 'function') renderInvoiceHistory();
+                    }
+                }, (err) => console.warn('Firestore stock listener error', err));
+                unsubSales = getFirestoreSalesRef().onSnapshot((doc) => {
+                    if (doc.exists) {
+                        cachedSales = doc.data()?.list || [];
+                        localStorage.setItem('zain_sales_history', JSON.stringify(cachedSales));
+                        if (typeof renderInvoiceHistory === 'function') renderInvoiceHistory();
+                        if (typeof renderReport === 'function' && document.getElementById('reportOverlay').classList.contains('show')) renderReport();
+                        if (typeof populateMonthSelect === 'function') populateMonthSelect();
+                    }
+                }, (err) => console.warn('Firestore sales listener error', err));
+            } catch (e) { console.warn('Realtime sync setup failed', e); }
+        }
+
+        setTimeout(setupRealtimeSync, 500);
+
+        // ---- Initial load ----
+        let dataLoaded = false;
+        async function loadAllData() {
+            await Promise.all([loadStockFromFirestore(), loadSalesFromFirestore()]);
+            dataLoaded = true;
+            if (typeof renderInvoiceHistory === 'function') renderInvoiceHistory();
+        }
+        loadAllData();
+
         const products = [
             {
                 category: 'أحواض سمارت', items: [
@@ -1445,32 +1535,29 @@
             moreDropdown.addEventListener('click', (e) => e.stopPropagation());
         }
 
-        // ---- Stock / Sales / Toast system ----
+        // ---- Stock / Sales / Toast system (Firestore-backed) ----
         const STORAGE_STOCK_KEY = 'zain_stock_data', STORAGE_SALES_KEY = 'zain_sales_history';
         function getDetailVal(item, keyName) { const d = (item.details || []).find(x => x.k.trim() === keyName); return d ? d.v : null; }
         function getCostPrice(item) { const costRaw = getDetailVal(item, 'سعر الشراء') || getDetailVal(item, 'سعر شراء') || '0'; return parseInt(costRaw) || 0; }
         function getStock(item) { const val = getDetailVal(item, 'المخزون') || getDetailVal(item, 'المعروض') || getDetailVal(item, 'المخزن') || '0'; return parseInt(val) || 0; }
         function setStockInItem(item, newVal) { const detail = item.details || []; let found = false; for (const key of ['المخزون', 'المعروض', 'المخزن']) { const d = detail.find(x => x.k.trim() === key); if (d) { d.v = String(newVal); found = true; break; } } if (!found) { detail.push({ k: 'المخزون', v: String(newVal) }); } }
-        function loadStockMap() { try { const raw = localStorage.getItem(STORAGE_STOCK_KEY); if (raw) return JSON.parse(raw); } catch (e) { } return {}; }
-        function saveStockMap(map) { localStorage.setItem(STORAGE_STOCK_KEY, JSON.stringify(map)); }
+        function loadStockMap() { return cachedStock; }
+        function saveStockMap(map) { saveStockToFirestore(map); }
         function getTotalAvailable(item) {
-            // return sum of المخزون + المعروض (العرض)
             const stockVal = parseInt(getDetailVal(item, 'المخزون') || '0');
             const displayVal = parseInt(getDetailVal(item, 'المعروض') || getDetailVal(item, 'العرض') || '0');
             return stockVal + displayVal;
         }
-        function getStockForProduct(productId) { const map = loadStockMap(); if (map[productId] !== undefined) return map[productId]; for (const cat of products) { const item = cat.items.find(it => it.id === productId); if (item) { const s = getTotalAvailable(item); map[productId] = s; saveStockMap(map); return s; } } return 0; }
         function getStockDetail(item, keyName) { return parseInt(getDetailVal(item, keyName) || '0'); }
         function getStockVal(item) { return getStockDetail(item, 'المخزون'); }
         function getDisplayVal(item) { return getStockDetail(item, 'المعروض') || getStockDetail(item, 'العرض'); }
         function setStockDetail(item, keyName, val) { const detail = item.details || []; const d = detail.find(x => x.k.trim() === keyName); if (d) { d.v = String(val); } else { detail.push({ k: keyName, v: String(val) }); } }
         function setStockForProduct(productId, qtyToDeduct) {
-            // Deduct first from المخزون, then from المعروض (العرض)
-            const map = loadStockMap();
+            const map = { ...cachedStock };
+            // Find product and get current values
             for (const cat of products) {
                 const item = cat.items.find(it => it.id === productId);
                 if (!item) continue;
-                // Get current values from localStorage first, then fallback to item details
                 const saved = map[productId];
                 let stockVal = 0, displayVal = 0;
                 if (saved !== undefined && typeof saved === 'object') {
@@ -1480,7 +1567,6 @@
                     stockVal = getStockVal(item);
                     displayVal = getDisplayVal(item);
                 }
-                // Deduct from المخزون first
                 let deduct = qtyToDeduct;
                 if (stockVal >= deduct) {
                     stockVal -= deduct;
@@ -1488,13 +1574,10 @@
                 } else {
                     deduct -= stockVal;
                     stockVal = 0;
-                    // Then deduct from المعروض
                     displayVal = Math.max(0, displayVal - deduct);
                 }
-                // Save both values separately
                 map[productId] = { stock: stockVal, display: displayVal };
                 saveStockMap(map);
-                // Update item details
                 setStockDetail(item, 'المخزون', stockVal);
                 if (item.details.find(d => d.k.trim() === 'المعروض' || d.k.trim() === 'العرض')) {
                     setStockDetail(item, 'المعروض', displayVal);
@@ -1502,29 +1585,29 @@
                 return;
             }
         }
-        // Override getStockForProduct to work with new dual-storage format
         function getStockForProduct(productId) {
             const map = loadStockMap();
             if (map[productId] !== undefined) {
                 if (typeof map[productId] === 'object') {
                     return (map[productId].stock || 0) + (map[productId].display || 0);
                 }
-                return map[productId];
+                return typeof map[productId] === 'number' ? map[productId] : 0;
             }
             for (const cat of products) {
                 const item = cat.items.find(it => it.id === productId);
                 if (item) {
                     const s = getTotalAvailable(item);
-                    map[productId] = { stock: getStockVal(item), display: getDisplayVal(item) };
-                    saveStockMap(map);
+                    const m = { ...cachedStock };
+                    m[productId] = { stock: getStockVal(item), display: getDisplayVal(item) };
+                    saveStockMap(m);
                     return s;
                 }
             }
             return 0;
         }
-        function loadSales() { try { const raw = localStorage.getItem(STORAGE_SALES_KEY); if (raw) return JSON.parse(raw); } catch (e) { } return []; }
-        function saveSales(sales) { localStorage.setItem(STORAGE_SALES_KEY, JSON.stringify(sales)); }
-        function addSaleRecord(productId, productTitle, qty, totalSellPrice, totalCostPrice) { const sales = loadSales(); sales.push({ id: Date.now(), productId, productTitle, quantity: qty, totalSellPrice, totalCostPrice, profit: totalSellPrice - totalCostPrice, date: new Date().toISOString() }); saveSales(sales); return sales; }
+        function loadSales() { return cachedSales; }
+        function saveSales(sales) { saveSalesToFirestore(sales); }
+        function addSaleRecord(productId, productTitle, qty, totalSellPrice, totalCostPrice) { const sales = [...loadSales()]; sales.push({ id: Date.now(), productId, productTitle, quantity: qty, totalSellPrice, totalCostPrice, profit: totalSellPrice - totalCostPrice, date: new Date().toISOString() }); saveSales(sales); return sales; }
         function showToast(msg, isError = false) { const el = document.getElementById('toast'); if (!el) return; el.textContent = msg; el.classList.remove('error'); if (isError) el.classList.add('error'); el.classList.add('show'); clearTimeout(el._timer); el._timer = setTimeout(() => el.classList.remove('show'), 3000); }
 
         // ---- Cart / Invoice System ----

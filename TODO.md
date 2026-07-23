@@ -28,9 +28,18 @@
   - رسائل Toast بعد كل عملية بيع
   - Responsive (شغال على الموبايل)
 
-## هيكل البيانات في localStorage
-| المفتاح | القيمة |
-|---------|--------|
-| `zain_stock_data` | `{ "productId": number }` - المخزون الحالي لكل منتج |
-| `zain_sales_history` | `[{ id, productId, productTitle, quantity, totalSellPrice, totalCostPrice, profit, date }]` |
+- [x] **🔥 Firebase Sync (تزامن فوري بين الموبايل واللاب)** 🔄
+  - تمت إضافة Firebase Firestore للتخزين السحابي
+  - البيانات تتزامن في الوقت الفعلي (real-time) بين جميع الأجهزة
+  - تخزين محلي (localStorage) كنسخة احتياطية عند انقطاع النت
+  - مستمعين (listeners) للتحديثات اللحظية للمخزون والمبيعات
+  - أي بيع يتم تسجيله يظهر فوراً على كل الأجهزة
+
+## هيكل البيانات
+| المصدر | المفتاح | القيمة |
+|---------|---------|--------|
+| Firestore: `data/stock` | `{ productId: {stock, display} }` | المخزون السحابي |
+| Firestore: `data/sales` | `{ list: [...] }` | تاريخ المبيعات السحابي |
+| localStorage | `zain_stock_data` | نسخة احتياطية للمخزون |
+| localStorage | `zain_sales_history` | نسخة احتياطية للمبيعات |
 
