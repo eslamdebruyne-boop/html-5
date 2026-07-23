@@ -1453,7 +1453,13 @@
         function setStockInItem(item, newVal) { const detail = item.details || []; let found = false; for (const key of ['المخزون', 'المعروض', 'المخزن']) { const d = detail.find(x => x.k.trim() === key); if (d) { d.v = String(newVal); found = true; break; } } if (!found) { detail.push({ k: 'المخزون', v: String(newVal) }); } }
         function loadStockMap() { try { const raw = localStorage.getItem(STORAGE_STOCK_KEY); if (raw) return JSON.parse(raw); } catch (e) { } return {}; }
         function saveStockMap(map) { localStorage.setItem(STORAGE_STOCK_KEY, JSON.stringify(map)); }
-        function getStockForProduct(productId) { const map = loadStockMap(); if (map[productId] !== undefined) return map[productId]; for (const cat of products) { const item = cat.items.find(it => it.id === productId); if (item) { const s = getStock(item); map[productId] = s; saveStockMap(map); return s; } } return 0; }
+        function getTotalAvailable(item) {
+            // return sum of المخزون + المعروض (العرض)
+            const stockVal = parseInt(getDetailVal(item, 'المخزون') || '0');
+            const displayVal = parseInt(getDetailVal(item, 'المعروض') || getDetailVal(item, 'العرض') || '0');
+            return stockVal + displayVal;
+        }
+        function getStockForProduct(productId) { const map = loadStockMap(); if (map[productId] !== undefined) return map[productId]; for (const cat of products) { const item = cat.items.find(it => it.id === productId); if (item) { const s = getTotalAvailable(item); map[productId] = s; saveStockMap(map); return s; } } return 0; }
         function setStockForProduct(productId, val) { const map = loadStockMap(); map[productId] = Math.max(0, val); saveStockMap(map); for (const cat of products) { const item = cat.items.find(it => it.id === productId); if (item) { setStockInItem(item, map[productId]); } } }
         function loadSales() { try { const raw = localStorage.getItem(STORAGE_SALES_KEY); if (raw) return JSON.parse(raw); } catch (e) { } return []; }
         function saveSales(sales) { localStorage.setItem(STORAGE_SALES_KEY, JSON.stringify(sales)); }
